@@ -1,35 +1,66 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import axios from "axios";
+import { useEffect, useState } from "react";
+import Card from "./Card";
+import "./styles.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [posts, setposts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [page, setpages] = useState(1);
+  const getDtaformserver = async () => {
+    try {
+      const res = await axios.get(
+        `https://jsonplaceholder.typicode.com/posts?_limit=4&_page=${page}`
+      );
+      setposts(res.data);
+    } catch (error) {
+      setLoading(false);
+      setError(true);
+    }
+  };
+
+  useEffect(() => {
+    getDtaformserver();
+  }, [page]);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="App">
+      <h1>Post upload</h1>
+      <button
+        disabled={page == 1}
+        onClick={() => (page > 1 ? setpages(page - 1) : setpages(page))}
+      >
+        prev
+      </button>
+      {page}
+      <button
+        disabled={page == page.length}
+        onClick={() => (page < 25 ? setpages(page + 1) : setpages(page))}
+      >
+        Next
+      </button>
 
-export default App
+      <hr />
+      {posts.map((el, i) => (
+        <Card key={el.id} id={el.id} title={el.title} body={el.body} />
+      ))}
+      {loading && (
+        <p>
+          <strong>data is Load......</strong>
+        </p>
+      )}
+      {error && (
+        <p style={{ color: "red" }}>
+          <b>Error in the server</b>
+        </p>
+      )}
+
+      {!loading &&
+        !error &&
+        posts.map((el) => (
+          <Card key={el.id} id={el.id} title={el.title} body={el.body} />
+        ))}
+    </div>
+  );
+}
